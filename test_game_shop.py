@@ -40,81 +40,75 @@ equipment = {
     }
 }
 
-player = {
-    'id': 0,
-    'resources': {
-        'credits': 200,
-        'gold': 2
-    },
-    'planes': {
-        1001: {'gun': 201},
-        1003: {'gun': 202}
-    }
-}
-
-player2 = {
-    'id': 0,
-    'resources': {
-        'credits': 200,
-        'gold': 150
-    },
-    'planes': {
-    }
-}
 shopping = game_shop.Shop(equipment)
 
 
-def test_dupl_plane_error():
+@pytest.fixture
+def player():
+    return {
+        'id': 0,
+        'resources': {
+            'credits': 200,
+            'gold': 2
+        },
+        'planes': {
+            1001: {'gun': 201},
+            1003: {'gun': 202}
+        }
+    }
+
+
+def test_dupl_plane_error(player):
     with pytest.raises(game_shop.DuplicationError):
         shopping.buy_plane(player, 1001) is True
 
 
-def test_buy_plane():
+def test_buy_plane(player):
     shopping.buy_plane(player, 1004)
     assert player['planes'][1004]['gun'] is None
 
 
-def test_buy_plane_resource_error():
+def test_buy_plane_resource_error(player):
     with pytest.raises(game_shop.ResourceError):
         shopping.buy_plane(player, 1002)
 
 
-def test_buy_gun_resource_error():
+def test_buy_gun_resource_error(player):
     with pytest.raises(game_shop.ResourceError):
         shopping.buy_gun(player, 1003, 203)
 
 
 #buy gun for not existed plane
-def test_buy_gun_for_not_exist_plane():
+def test_buy_gun_for_not_exist_plane(player):
     with pytest.raises(game_shop.CompatibilityError):
         shopping.buy_gun(player, 1002, 203)
 
 
 #can't buy gun for plane which already has it
-def test_buy_gun_existed():
+def test_buy_gun_existed(player):
     with pytest.raises(game_shop.DuplicationError):
         shopping.buy_gun(player, 1003, 202)
 
 
 #buy_gun pass
-def test_buy_gun():
+def test_buy_gun(player):
     shopping.buy_gun(player, 1003, 204)
     assert player['planes'][1003]['gun'] == 204
 
 
-def test_buy_gun_not_comp_to_plane():
+def test_buy_gun_not_comp_to_plane(player):
     with pytest.raises(game_shop.CompatibilityError):
         shopping.buy_gun(player, 1001, 202)
 
 
-def test_buy_gun_update_resources():
+def test_buy_gun_update_resources(player):
     res_in = player['resources']['credits']
     gun_price = equipment['guns'][201]['price']['credits']
     shopping.buy_gun(player, 1003, 201)
     assert player['resources']['credits'] == res_in - gun_price
 
 
-def test_buy_plane_update_resources():
+def test_buy_plane_update_resources(player):
     res_in = player['resources']['credits']
     plane_price = equipment['planes'][1005]['price']['credits']
     shopping.buy_plane(player, 1005)
